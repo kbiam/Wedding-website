@@ -2,7 +2,6 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Login from './components/Login';
 import AdminDashboard from './components/AdminDashboard';
-import GuestsByRelation from './components/GuestsByRelation';
 import Statistics from './components/Statistics';
 import PrivateRoute from './components/PrivateRoute';
 import { AuthProvider } from './context/AuthContext';
@@ -18,7 +17,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             
             {/* Private routes */}
-            <Route path="/admin" element={
+            <Route path="/dashboard" element={
               <PrivateRoute>
                 <AdminDashboard />
               </PrivateRoute>
@@ -30,14 +29,13 @@ function App() {
             } />
             
             {/* Public routes for end users */}
-            <Route path="/family" element={<GuestsByRelation relation="family" />} />
-            <Route path="/friends" element={<GuestsByRelation relation="friend" />} />
-            <Route path="/relatives" element={<GuestsByRelation relation="relative" />} />
-            <Route path="/others" element={<GuestsByRelation relation="other" />} />
-            <Route path="/test" element={<WeddingGuestPortal/>} />
+            <Route path="/family" element={<WeddingGuestPortal />} />
+            <Route path="/friends" element={<WeddingGuestPortal/>} />
+            <Route path="/relatives" element={<WeddingGuestPortal />} />
+            <Route path="/others" element={<WeddingGuestPortal />} />
             
             {/* Default route */}
-            <Route path="/" element={<Navigate to="/family" replace />} />
+            <Route path="/" element={<Navigate to="/others" replace />} />
           </Routes>
         </div>
       </Router>

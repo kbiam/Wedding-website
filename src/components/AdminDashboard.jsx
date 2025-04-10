@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import Navbar from './Navbar';
+import {api,url as baseUrl} from '@/utils/api';
 
 const AdminDashboard = () => {
   const [guests, setGuests] = useState([]);
@@ -18,7 +19,8 @@ const AdminDashboard = () => {
       name: '',
       phone: '',
       relation: 'family',
-      side: 'bride'
+      side: 'bride',
+      guest_count: 1
     }
   });
 
@@ -30,7 +32,7 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       
-      let url = 'http://localhost:5000/api/guests';
+      let url = `${baseUrl}/api/guests`;
       const params = new URLSearchParams();
       
       if (relationFilter) {
@@ -64,8 +66,8 @@ const AdminDashboard = () => {
   const onSubmit = async (data) => {
     try {
       setIsAdding(true);
-      const response = await axios.post(
-        'http://localhost:5000/api/guests',
+      const response = await api.post(
+        '/guests',
         data,
         {
           headers: {
@@ -84,11 +86,11 @@ const AdminDashboard = () => {
     }
   };
 
-  const handleInvite = async (id, currentStatus) => {
+  const handleInvite = async (id) => {
     try {
-      await axios.patch(
-        `http://localhost:5000/api/guests/${id}/invite`,
-        { is_invited: !currentStatus },
+      await api.patch(
+        `/guests/${id}/invite`,
+        { is_invited: true },
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -97,7 +99,7 @@ const AdminDashboard = () => {
       );
       
       setGuests(guests.map(guest => 
-        guest.id === id ? { ...guest, is_invited: !guest.is_invited } : guest
+        guest.id === id ? { ...guest, is_invited: true } : guest
       ));
     } catch (err) {
       setError('Failed to update invitation status');
@@ -111,7 +113,7 @@ const AdminDashboard = () => {
     }
     
     try {
-      await axios.delete(`http://localhost:5000/api/guests/${id}`, {
+      await api.delete(`/guests/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -155,7 +157,7 @@ const AdminDashboard = () => {
             Add New Guest
           </h2>
           
-          <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 ">
+          <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 ">
             <div className=''>
               <label className="block text-gray-700 text-sm font-medium mb-2">Name</label>
               <input
@@ -207,14 +209,29 @@ const AdminDashboard = () => {
                 <option value="groom">Groom</option>
               </select>
             </div>
+            <div className=''>
+              <label className="block text-gray-700 text-sm font-medium mb-2">No. of guests</label>
+              <select
+                {...register("guest_count")}
+                className="w-full px-3 py-2 rounded-md border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors bg-white"
+                defaultValue={1}
+              >
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+                <option value="6">6</option>
+              </select>
+            </div>
             
-            <div className="mt-2 lg:mt-0 md:col-span-2 lg:col-span-1 flex flex-row justify-center h-full items-end ">
+            <div className="mt-2 lg:mt-0 md:col-span-2 lg:col-span-1 flex flex-row justify-center h-full items-end">
               <button
                 type="submit"
                 disabled={isAdding}
                 className={`${
                   isAdding ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
-                } text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center  py-2.5 w-full`}
+                } text-white font-medium py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors flex items-center justify-center py-2.5 w-full`}
               >
                 {isAdding ? (
                   <>
@@ -309,8 +326,14 @@ const AdminDashboard = () => {
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Side
                         </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          No. of guests
+                        </th>
                         <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Response
                         </th>
                         <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Actions
@@ -321,7 +344,7 @@ const AdminDashboard = () => {
                       {guests.map((guest) => (
                         <tr key={guest.id} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="font-medium text-gray-900  text-left">{guest.name}</div>
+                            <div className="font-medium text-gray-900 text-left">{guest.name}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-700 text-left">{guest.phone}</div>
@@ -332,6 +355,9 @@ const AdminDashboard = () => {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-700 capitalize text-left">{guest.side}</div>
                           </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-700 capitalize text-left">{guest.guest_count}</div>
+                          </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
                               guest.is_invited
@@ -341,18 +367,35 @@ const AdminDashboard = () => {
                               {guest.is_invited ? 'Invited' : 'Not Invited'}
                             </span>
                           </td>
-                          <td className=" py-4 whitespace-nowrap text-center text-sm ">
-                            <div className="flex items-center justify-center space-x-2">
-                              <button
-                                onClick={() => handleInvite(guest.id, guest.is_invited)}
-                                className={`inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded shadow-sm ${
-                                  guest.is_invited
-                                    ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
-                                    : 'bg-green-100 text-green-800 hover:bg-green-200'
-                                } focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors`}
+                          <td className="px-6 py-4 whitespace-nowrap text-center">
+                            {guest.has_responded ? 
+                            (
+                              <span className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
+                                guest.is_attending
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {guest.is_attending ? 'Attending' : 'Not Attending'}
+                              </span>
+                            )
+                            :
+                            (
+                              <span className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full bg-red-100 text-red-800 `}
                               >
-                                {guest.is_invited ? 'Uninvite' : 'Invite'}
-                              </button>
+                                No response
+                              </span>
+                            )
+                          }
+                          </td>
+                          <td className="py-4 whitespace-nowrap text-center text-sm">
+                            <div className="flex items-center justify-center space-x-2">
+                              
+                                <button
+                                  onClick={() => handleInvite(guest.id)}
+                                  className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded shadow-sm bg-green-100 text-green-800 hover:bg-green-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                                >
+                                 {guest.is_invited? 'Invite Again':"Invite"}
+                                </button>
                               <button
                                 onClick={() => handleDelete(guest.id)}
                                 className="inline-flex items-center px-4 py-2 border border-transparent text-xs font-medium rounded shadow-sm bg-red-100 text-red-800 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"

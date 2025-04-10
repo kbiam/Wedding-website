@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { X } from 'lucide-react';
-
+import { useForm } from 'react-hook-form';
+import { api } from '@/utils/api';
 const WeddingGuestPortal = () => {
+const { register, handleSubmit, watch, formState: { errors } } = useForm();
+
   const [activeModal, setActiveModal] = useState(null);
   const [isAttending, setIsAttending] = useState(null);
   const [guestCount, setGuestCount] = useState(1);
   const [phone, setPhone] = useState('');
-  const [name, setName] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -24,11 +26,9 @@ const WeddingGuestPortal = () => {
   }, []);
 
   // Submit attendance response
-  const handleAttendanceSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!name || !phone) {
-      setSubmitError('Please provide your name and phone number');
+  const handleAttendanceSubmit = async (data) => {
+    if (!data.phone) {
+      setSubmitError('Please provide phone number');
       return;
     }
     
@@ -37,51 +37,49 @@ const WeddingGuestPortal = () => {
       setSubmitError('');
       
       // First check if guest exists
-      const response = await axios.get(`http://localhost:5000/api/guests?phone=${phone}`);
-      let guestId;
+      const response = await api.get(`/guests?phone=${data.phone}`);
       
-      if (response.data.length > 0) {
-        // Update existing guest
-        guestId = response.data[0].id;
-        await axios.patch(`http://localhost:5000/api/guests/${guestId}/attendance`, {
+      if (response.data.length === 0) {
+        setSubmitError("Please use the number on which you received the invitation!");
+        return;
+      }
+      
+      // Guest exists, proceed with updating attendance
+      const guestId = response.data[0].id;
+      
+      try {
+        // Update attendance status
+        await api.patch(`/guests/${guestId}/attendance`, {
           is_attending: isAttending,
-          guest_count : guestCount
+          guest_count: data.guestCount
         });
-      } 
-    //   else {
-    //     // Create new guest entry - defaults to "other" relation and "bride" side
-    //     // These can be updated by admin later
-    //     const newGuest = await axios.post('http://localhost:5000/api/guests', {
-    //       name: name,
-    //       phone: phone,
-    //       relation: 'other',
-    //       side: 'bride'
-    //     });
-    //     guestId = newGuest.data.id;
         
-    //     await axios.patch(`http://localhost:5000/api/guests/${guestId}/attendance`, {
-    //       is_attending: isAttending
-    //     });
-    //   }
-      
-      setSubmitMessage(isAttending 
-        ? `Thank you! We've registered your attendance with ${guestCount} guest(s).` 
-        : "We've received your response. We'll miss you at our special day!");
-      
-      // Reset form after successful submission
-      setTimeout(() => {
-        setActiveModal(null);
-        setSubmitMessage('');
-      }, 5000);
-      
+        // Success message
+        setSubmitMessage(isAttending 
+          ? `Thank you! We've registered your attendance with ${data.guestCount} guest(s).` 
+          : "We've received your response. We'll miss you at our special day!");
+        
+        // Reset form after successful submission
+        setTimeout(() => {
+          setActiveModal(null);
+          setSubmitMessage('');
+        }, 5000);
+      } catch (updateError) {
+        // Specifically handle the 403 error for uninvited guests
+        if (updateError.response && updateError.response.status === 403) {
+          setSubmitError("Sorry, it appears you haven't been invited to this event yet.");
+        } else {
+          setSubmitError("There was a problem updating your attendance. Please try again.");
+        }
+        console.error('Error updating attendance:', updateError.response.data.message);
+      }
     } catch (error) {
-      console.error('Error submitting attendance:', error);
-      setSubmitError('There was a problem submitting your response. Please try again.');
+      console.error('Error checking guest:', error);
+      setSubmitError('There was a problem connecting to the server. Please try again later.');
     } finally {
       setSubmitting(false);
     }
   };
-
   // Modal component
   const Modal = ({ isOpen, onClose, title, children }) => {
     if (!isOpen) return null;
@@ -290,27 +288,15 @@ const WeddingGuestPortal = () => {
             <p className="text-gray-600">Thank you for your response!</p>
           </div>
         ) : (
-          <form onSubmit={handleAttendanceSubmit}>
-            <div className="mb-6">
-              <label className="block text-gray-900 mb-2 font-medium text-left">Your Name</label>
-              <input 
-                type="text" 
-            className="w-full p-3 border border-gray-300 rounded-lg "
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                required
-                placeholder="Enter your full name"
-              />
-            </div>
+          <form onSubmit={handleSubmit(handleAttendanceSubmit)}>
+
             
             <div className="mb-6">
               <label className="block text-gray-900 mb-2 font-medium text-left">Your Phone Number</label>
               <input 
                 type="tel" 
                 className="w-full p-3 border border-gray-300 rounded-lg "
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
+                {...register("phone",{required:true})}
                 placeholder="Enter your phone number"
               />
             </div>
@@ -349,8 +335,7 @@ const WeddingGuestPortal = () => {
                 <div className="relative">
                   <select
                     className="w-full p-3 border border-gray-300 rounded-lg appearance-none "
-                    value={guestCount}
-                    onChange={(e) => setGuestCount(parseInt(e.target.value))}
+                    {...register("guestCount")}
                   >
                     {[1, 2, 3, 4, 5].map(num => (
                       <option key={num} value={num}>{num} {num === 1 ? 'Guest' : 'Guests'}</option>
@@ -373,7 +358,7 @@ const WeddingGuestPortal = () => {
             
             <button
               type="submit"
-              className="w-full bg-[#BFA480] disabled:bg-[#BFA480]/70 hover:bg-[#BFA480]/90 text-white py-3 px-6 rounded-lg font-medium transition shadow-md hover:shadow-lg"
+              className="w-full bg-[#c29253] disabled:bg-[#BFA480]/70 hover:bg-[#c29253]/90 text-white py-3 px-6 rounded-lg font-medium transition shadow-md hover:shadow-lg"
               disabled={submitting || isAttending === null}
             >
               {submitting ? 'Submitting...' : 'Submit Response'}

@@ -69,7 +69,7 @@ const Navbar = () => {
           
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link to="/admin" className="hover:text-gray-300 transition duration-200">Dashboard</Link>
+            <Link to="/dashboard" className="hover:text-gray-300 transition duration-200">Dashboard</Link>
             <Link to="/statistics" className="hover:text-gray-300 transition duration-200">Statistics</Link>
             
             {/* Categories dropdown with hover and click support */}
@@ -110,7 +110,7 @@ const Navbar = () => {
         <div className={`${isMenuOpen ? 'block' : 'hidden'} md:hidden`}>
           <div className="pt-2 pb-4 space-y-1">
             <Link 
-              to="/admin" 
+              to="/dashboard" 
               className="block px-3 py-2 rounded-md text-base font-medium hover:bg-gray-700"
               onClick={() => setIsMenuOpen(false)}
             >

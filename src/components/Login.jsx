@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import axios from 'axios';
-
+import { api } from '@/utils/api';
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -17,13 +17,13 @@ const Login = () => {
     setIsLoading(true);
     
     try {
-      const response = await axios.post('http://localhost:5000/api/login', {
+      const response = await api.post('/login', {
         username,
         password
       });
       
       login(response.data.user, response.data.token);
-      navigate('/admin');
+      navigate('/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
     } finally {
