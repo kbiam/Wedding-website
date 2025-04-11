@@ -35,20 +35,20 @@ const { register, handleSubmit, watch, formState: { errors } } = useForm();
       setSubmitting(true);
       setSubmitError('');
       
-      // First check if guest exists
-      const response = await api.get(`/guests?phone=${data.phone}`);
+      // // First check if guest exists
+      // const response = await api.get(`/guests?phone=${data.phone}`);
       
-      if (response.data.length === 0) {
-        setSubmitError("Please use the number on which you received the invitation!");
-        return;
-      }
+      // if (response.data.length === 0) {
+      //   setSubmitError("Please use the number on which you received the invitation!");
+      //   return;
+      // }
       
-      // Guest exists, proceed with updating attendance
-      const guestId = response.data[0].id;
+      // // Guest exists, proceed with updating attendance
+      // const guestId = response.data[0].id;
       
       try {
         // Update attendance status
-        await api.patch(`/guests/${guestId}/attendance`, {
+        await api.patch(`/guests/${data.phone}/attendance`, {
           is_attending: isAttending,
           attending_guest_count: data.guestCount
         });
