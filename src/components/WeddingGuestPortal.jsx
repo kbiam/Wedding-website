@@ -8,7 +8,6 @@ const { register, handleSubmit, watch, formState: { errors } } = useForm();
 
   const [activeModal, setActiveModal] = useState(null);
   const [isAttending, setIsAttending] = useState(null);
-  const [guestCount, setGuestCount] = useState(1);
   const [phone, setPhone] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitMessage, setSubmitMessage] = useState('');
@@ -51,7 +50,7 @@ const { register, handleSubmit, watch, formState: { errors } } = useForm();
         // Update attendance status
         await api.patch(`/guests/${guestId}/attendance`, {
           is_attending: isAttending,
-          guest_count: data.guestCount
+          attending_guest_count: data.guestCount
         });
         
         // Success message

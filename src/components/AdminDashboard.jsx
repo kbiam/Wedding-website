@@ -64,6 +64,8 @@ const AdminDashboard = () => {
   };
 
   const onSubmit = async (data) => {
+    data.phone = data.phone.replace(/[\s-]+/g, '');
+    console.log(data.phone)
     try {
       setIsAdding(true);
       const response = await api.post(
@@ -327,7 +329,10 @@ const AdminDashboard = () => {
                           Side
                         </th>
                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          No. of guests
+                          Invited guests
+                        </th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Attending guests
                         </th>
                         <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                           Status
@@ -357,6 +362,9 @@ const AdminDashboard = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-700 capitalize text-left">{guest.guest_count}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-700 capitalize text-left">{guest.attending_guest_count}</div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-center">
                             <span className={`px-3 py-1 inline-flex text-xs leading-5 font-medium rounded-full ${
